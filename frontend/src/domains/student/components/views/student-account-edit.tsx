@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -42,12 +43,12 @@ export const StudentAccountEdit: React.FC<StudentAccountEditProps> = ({
   const [updateStudent, { isLoading }] = useUpdateStudentMutation();
   const navigate = useNavigate();
 
-  const studentDetail = useGetStudentDetail(id);
+  const studentDetail = useGetStudentDetail(id) as any;
 
   React.useEffect(() => {
-    if (studentDetail) {
+    if (studentDetail?.student) {
       const { setValue } = methods;
-      for (const [key, value] of Object.entries(studentDetail) as [
+      for (const [key, value] of Object.entries(studentDetail?.student) as [
         keyof StudentProps,
         StudentDetailValue<StudentProps>
       ][]) {

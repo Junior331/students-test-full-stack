@@ -7,7 +7,7 @@ export const EditStudent = () => {
     <StudentAccountEdit
       heading='Edit Student Account'
       id={id}
-      redirectPath={`/app/students/${id}`}
+      redirectPath={`/app/students`}
     />
   );
 };

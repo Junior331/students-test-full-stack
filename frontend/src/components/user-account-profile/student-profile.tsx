@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react';
 import { Grid2 } from '@mui/material';
 import { useGetStudentDetail } from '@/domains/student/hooks/use-get-student-detail';
@@ -13,7 +14,8 @@ type StudentProfileProps = {
 };
 
 export const StudentProfile: React.FC<StudentProfileProps> = ({ id }) => {
-  const student = useGetStudentDetail(id);
+  const student = useGetStudentDetail(id) as any;
+  
   const {
     name,
     email,
@@ -35,7 +37,7 @@ export const StudentProfile: React.FC<StudentProfileProps> = ({ id }) => {
     relationOfGuardian,
     systemAccess,
     reporterName
-  } = student;
+  } = student?.student as any;
 
   return (
     <Grid2 container spacing={3}>

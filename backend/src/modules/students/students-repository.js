@@ -43,11 +43,29 @@ const findAllStudents = async (payload) => {
     return rows;
 }
 
-const addOrUpdateStudent = async (payload) => {
-    const query = "SELECT * FROM student_add_update($1)";
-    const queryParams = [payload];
+const addStudent = async (payload) => {
+    const query = "SELECT * FROM student_add_update($1::jsonb)";
+    const queryParams = [JSON.stringify(payload)];
+
     const { rows } = await processDBRequest({ query, queryParams });
+    
+    if (!rows || rows.length === 0) {
+        throw new ApiError(500, "No data returned from the database.");
+    }
+    
     return rows[0];
+};
+
+const updateStudentDetail = async (payload) => {
+    const { id, name, email } = payload;
+    const query = `
+        UPDATE users
+        SET name = $1, email = $2
+        WHERE id = $3
+    `;
+    const queryParams = [name, email, id];
+    const { rowCount } = await processDBRequest({ query, queryParams });
+    return rowCount;
 }
 
 const findStudentDetail = async (id) => {
@@ -113,9 +131,10 @@ const findStudentToUpdate = async (paylaod) => {
 
 module.exports = {
     getRoleId,
+    addStudent,
     findAllStudents,
-    addOrUpdateStudent,
     findStudentDetail,
+    updateStudentDetail,
+    findStudentToUpdate,
     findStudentToSetStatus,
-    findStudentToUpdate
 };

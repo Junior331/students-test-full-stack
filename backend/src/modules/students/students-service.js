@@ -1,5 +1,5 @@
 const { ApiError, sendAccountVerificationEmail } = require("../../utils");
-const { findAllStudents, findStudentDetail, findStudentToSetStatus, addOrUpdateStudent } = require("./students-repository");
+const { findAllStudents, findStudentDetail, findStudentToSetStatus, addStudent, updateStudentDetail } = require("./students-repository");
 const { findUserById } = require("../../shared/repository");
 
 const checkStudentId = async (id) => {
@@ -29,33 +29,54 @@ const getStudentDetail = async (id) => {
     return student;
 }
 
+const validatePayload = (payload) => {
+    const errors = [];
+    if (isNaN(parseInt(payload.roll))) {
+        errors.push("Field 'roll' must be a valid integer.");
+    }
+
+    if (errors.length > 0) {
+        throw new ApiError(400, errors.join(" "));
+    }
+};
+
 const addNewStudent = async (payload) => {
     const ADD_STUDENT_AND_EMAIL_SEND_SUCCESS = "Student added and verification email sent successfully.";
     const ADD_STUDENT_AND_BUT_EMAIL_SEND_FAIL = "Student added, but failed to send verification email.";
+
     try {
-        const result = await addOrUpdateStudent(payload);
+        validatePayload(payload);
+
+        const result = await addStudent(payload);
         if (!result.status) {
-            throw new ApiError(500, result.message);
+            throw new ApiError(500, result.message || result.description || "Failed to add student.");
         }
 
         try {
             await sendAccountVerificationEmail({ userId: result.userId, userEmail: payload.email });
             return { message: ADD_STUDENT_AND_EMAIL_SEND_SUCCESS };
         } catch (error) {
-            return { message: ADD_STUDENT_AND_BUT_EMAIL_SEND_FAIL }
+            console.error("Error sending email:", error);
+            return { message: ADD_STUDENT_AND_BUT_EMAIL_SEND_FAIL };
         }
     } catch (error) {
+        console.error("Error in addNewStudent ::", error);
         throw new ApiError(500, "Unable to add student");
     }
-}
+};
+
 
 const updateStudent = async (payload) => {
-    const result = await addOrUpdateStudent(payload);
-    if (!result.status) {
-        throw new ApiError(500, result.message);
+    try {
+        const result = await updateStudentDetail(payload);
+        if (result <= 0) {
+            throw new ApiError(500, "Unable to update student detail");
+        }
+        return { message: "Student detail updated successfully" };
+    } catch (error) {
+        console.error("Error in updateStudent ::", error);
+        throw new ApiError(500, "Unable to update student");
     }
-
-    return { message: result.message };
 }
 
 const setStudentStatus = async ({ userId, reviewerId, status }) => {
